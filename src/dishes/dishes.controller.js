@@ -16,6 +16,7 @@ function dishExists(req, res, next){
         res.locals.dish = foundDish;
         return next();
     }
+    
     next({
         status: 404,
         message: `Dish does not exist: ${dishId}`
@@ -66,8 +67,9 @@ function create(req, res){
     res.status(201).json({ data: newDish})
 }
 
-function update(req, res){
+function update(req, res, next){
     const { data: { name, description, price, image_url} = {} } = req.body;
+
     const foundDish = res.locals.dish;
 
     foundDish.name = name;
@@ -75,7 +77,15 @@ function update(req, res){
     foundDish.price = price;
     foundDish.image_url = image_url;
 
-    res.json({ data: foundDish})
+    if (req.body.data.id === req.params.dishId){
+        res.json({ data: foundDish})
+        } else {
+        next({
+            status: 400,
+            message: `Dish id does not match route id. Dish: ${req.body.data.id}, Route: ${req.params.dishId}`
+        })
+    
+    }
 }
 
 
