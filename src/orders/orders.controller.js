@@ -50,12 +50,44 @@ function quantityIsValidNumber(req, res, next){
 
 function dishesIsValidArray(req, res, next){
     const { data: {dishes} = {} } = req.body;
-    console.log('dishes', dishes)
     if (!Array.isArray(dishes) || dishes.length === 0) return next({
         status: 400,
         message: `Order must include at least one dish`
     })
     else return next();
+}
+
+function statusPropertyIsValid(req, res, next){
+    const { data: {status} = {} } = req.body;
+    
+    const validStatus = [
+        'pending',
+        'preparing',
+        'out-for-delivery',
+        'delivered'
+    ]
+    if (!status.includes(validStatus)){
+        return next({
+            status: 404,
+            message: 'Order must have a status of pending, preparing, out-for-delivery, delivered'
+        })
+    }
+    if (status === "delivered") return next({
+        status: 404,
+        message: 'A delivered order cannot be changed'
+    })
+    next();
+}
+
+function bodyDataIdMatchesParamsId(req, res, next){
+    if (req.body.data.id === req.params.dishId){
+        next();
+    }else{
+        next({
+            status: 400,
+            message: `Order id does not match route id. Order: ${req.body.data.id}, Route: ${req.params.dishId}`
+        })
+    }
 }
 
 
@@ -84,6 +116,18 @@ function create(req, res) {
     res.status(201).json({ data: newOrder})
 }
 
+function update(req,res){
+    const { data: { deliverTo, mobileNumber, status, dishes} = {} } = req.body;
+    const { quantity } = dishes;
+    const order = res.locals.order;
+
+    order.deliverTo = deliverTo;
+    order.mobileNumber = mobileNumber;
+    order.status = status;
+    order.dishes = dishes;
+    order.dishes.quantity = quantity;
+}
+
 module.exports = {
     list,
     read: [orderExists, read],
@@ -94,5 +138,16 @@ module.exports = {
         dishesIsValidArray,
         quantityIsValidNumber,
         create
+    ],
+    update: [
+        orderExists,
+        bodyDataHas('deliverTo'),
+        bodyDataHas('mobileNumber'),
+        bodyDataHas('dishes'),
+        dishesIsValidArray,
+        quantityIsValidNumber,
+        statusPropertyIsValid,
+        bodyDataIdMatchesParamsId,
+        update
     ]
 }

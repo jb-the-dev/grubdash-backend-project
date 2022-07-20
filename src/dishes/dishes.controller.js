@@ -45,6 +45,17 @@ function priceIsValidNumber(req, res, next) {
     next()
 }
 
+function bodyDataIdMatchesParamsId(req, res, next){
+    if (req.body.data.id === req.params.dishId){
+        next();
+    }else{
+        next({
+            status: 400,
+            message: `Dish id does not match route id. Dish: ${req.body.data.id}, Route: ${req.params.dishId}`
+        })
+    }
+}
+
 /* -- ROUTE HANDLING -- */
 function list(req, res){
     res.json({ data: dishes})
@@ -77,15 +88,7 @@ function update(req, res, next){
     foundDish.price = price;
     foundDish.image_url = image_url;
 
-    if (req.body.data.id === req.params.dishId){
-        res.json({ data: foundDish})
-        } else {
-        next({
-            status: 400,
-            message: `Dish id does not match route id. Dish: ${req.body.data.id}, Route: ${req.params.dishId}`
-        })
-    
-    }
+    res.json({ data: foundDish})
 }
 
 
@@ -107,6 +110,7 @@ module.exports = {
         bodyDataHas('price'),
         bodyDataHas('image_url'),
         priceIsValidNumber,
+        bodyDataIdMatchesParamsId,
         update
     ]
 }
