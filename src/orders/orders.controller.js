@@ -95,13 +95,14 @@ function bodyDataIdMatchesParamsId(req, res, next) {
 }
 
 function isPendingCheck(req, res, next) {
-  const { data: { status } = {} } = req.body;
-  if (status !== "pending")
-    return next({
-      status: 400,
-      message: "An order cannot be deleted unless it is pending",
-    });
-  return next();
+  const foundOrder = orders.find(order => order.id === req.params.orderId)
+  console.log("data", foundOrder)
+  if (foundOrder.status !== "pending") 
+  return next({
+    status: 400,
+    message: "An order cannot be deleted unless it is pending",
+  });
+  next();
 }
 
 /* -- ROUTE HANDLING -- */
@@ -123,7 +124,6 @@ function create(req, res) {
     status,
     dishes,
   };
-  console.log("dishes", dishes, "newO", newOrder);
   orders.push(newOrder);
   res.status(201).json({ data: newOrder });
 }
@@ -144,10 +144,10 @@ function update(req, res) {
 
 function destroy(req, res) {
   const orderId = req.params.orderId;
-  const index = orders.findIndex((order) => order.id === orderId);
+  const index = orders.findIndex(order => order.id === orderId);
 
-  const deletedOrders = orders.splice(index, 1);
-  res.sendStatus(204);
+    const deletedOrders = orders.splice(index, 1);
+    res.sendStatus(204);
 }
 
 module.exports = {
