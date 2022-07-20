@@ -756,7 +756,6 @@ describe("orders router", () => {
         .set("Accept", "application/json");
 
       expect(response.body.data).toBeUndefined();
-      console.log('error', response.body.error, 'stat', response.status)
       expect(response.body.error).toBeUndefined();
       expect(response.status).toBe(204);
       

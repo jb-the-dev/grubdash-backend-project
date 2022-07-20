@@ -1,13 +1,7 @@
 const path = require("path");
-const { brotliDecompressSync } = require("zlib");
-
-// Use the existing order data
 const orders = require(path.resolve("src/data/orders-data"));
 
-// Use this function to assigh ID's when necessary
 const nextId = require("../utils/nextId");
-
-// TODO: Implement the /orders handlers needed to make the tests pass
 
 /* -- VALIDATION -- */
 function orderExists(req, res, next) {
@@ -96,7 +90,6 @@ function bodyDataIdMatchesParamsId(req, res, next) {
 
 function isPendingCheck(req, res, next) {
   const foundOrder = orders.find(order => order.id === req.params.orderId)
-  console.log("data", foundOrder)
   if (foundOrder.status !== "pending") 
   return next({
     status: 400,

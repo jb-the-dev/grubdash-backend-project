@@ -1,9 +1,6 @@
 const path = require("path");
-
-// Use the existing dishes data
 const dishes = require(path.resolve("src/data/dishes-data"));
 
-// Use this function to assign ID's when necessary
 const nextId = require("../utils/nextId");
 
 /* -- VALIDATION -- */
@@ -89,7 +86,6 @@ function update(req, res, next){
 
     res.json({ data: foundDish})
 }
-
 
 module.exports = {
     list,
