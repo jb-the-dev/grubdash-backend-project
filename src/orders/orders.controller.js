@@ -37,12 +37,12 @@ function bodyDataHas(propertyName) {
 
 function quantityIsValidNumber(req, res, next){
     const { data : {dishes} = {} } = req.body;
-    const index = dishes.findIndex(dish => dish.id === req.params.dishId)
+    const index = dishes.findIndex(dish => dish.quantity.length < 1)
 
     if (dishes.quantity <= 0 || !Number.isInteger(dishes.quantity)) {
         return next ({
             status: 400,
-            message: `Dish ${index} must have a quantity that is an integer greater than 0`
+            message: `Dish ${index + 1} must have a quantity that is an integer greater than 0`
         })
     }
     next();
@@ -66,28 +66,17 @@ function statusPropertyIsValid(req, res, next){
         'out-for-delivery',
         'delivered'
     ]
-    if (!status.includes(validStatus)){
-        return next({
-            status: 404,
-            message: 'Order must have a status of pending, preparing, out-for-delivery, delivered'
-        })
+    if (validStatus.includes(status)){
+        return next();
     }
     if (status === "delivered") return next({
-        status: 404,
+        status: 400,
         message: 'A delivered order cannot be changed'
     })
-    next();
-}
-
-function bodyDataIdMatchesParamsId(req, res, next){
-    if (req.body.data.id === req.params.dishId){
-        next();
-    }else{
-        next({
-            status: 400,
-            message: `Order id does not match route id. Order: ${req.body.data.id}, Route: ${req.params.dishId}`
-        })
-    }
+    return next({
+        status: 400,
+        message: 'Order must have a status of pending, preparing, out-for-delivery, delivered'
+    })
 }
 
 
@@ -111,7 +100,7 @@ function create(req, res) {
         status,
         dishes
     }
-    console.log('newO', newOrder)
+    console.log('dishes', dishes, 'newO', newOrder)
     orders.push(newOrder);
     res.status(201).json({ data: newOrder})
 }
@@ -119,13 +108,18 @@ function create(req, res) {
 function update(req,res){
     const { data: { deliverTo, mobileNumber, status, dishes} = {} } = req.body;
     const { quantity } = dishes;
-    const order = res.locals.order;
+    const foundOrder = res.locals.order;
 
-    order.deliverTo = deliverTo;
-    order.mobileNumber = mobileNumber;
-    order.status = status;
-    order.dishes = dishes;
-    order.dishes.quantity = quantity;
+    foundOrder.deliverTo = deliverTo;
+    foundOrder.mobileNumber = mobileNumber;
+    foundOrder.status = status;
+    foundOrder.dishes = dishes;
+    foundOrder.dishes.quantity = quantity;
+    if (req.body.data.id === req.params.orderId){
+        res.json({ data: foundOrder})
+    } else {
+        res.status(400).json({ data: foundOrder})
+    }
 }
 
 module.exports = {
@@ -145,9 +139,8 @@ module.exports = {
         bodyDataHas('mobileNumber'),
         bodyDataHas('dishes'),
         dishesIsValidArray,
-        quantityIsValidNumber,
         statusPropertyIsValid,
-        bodyDataIdMatchesParamsId,
-        update
+        quantityIsValidNumber,
+        update,
     ]
 }

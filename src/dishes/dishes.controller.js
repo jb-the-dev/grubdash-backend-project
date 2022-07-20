@@ -46,6 +46,7 @@ function priceIsValidNumber(req, res, next) {
 }
 
 function bodyDataIdMatchesParamsId(req, res, next){
+    if (!req.body.data.id) return next();
     if (req.body.data.id === req.params.dishId){
         next();
     }else{
